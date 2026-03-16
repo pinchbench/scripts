@@ -19,10 +19,10 @@ Usage:
 Options:
   --models:  Space-separated list of models to benchmark
   --models-file: YAML file with default models (e.g. default-models.yml)
-  --count:   Number of instances to create (default: 1)
+  --count:   Number of instances to create (default: 25)
              Models are distributed round-robin across instances.
              e.g. 9 models across 3 instances = 3 models per instance.
-  --workers: Parallel SSH workers for writing model files (default: 10)
+  --workers: Parallel SSH workers for writing model files (default: 25)
   --key:     Path to SSH private key (default: ~/.ssh/id_ed25519)
 """
 
@@ -289,11 +289,11 @@ Examples:
     parser.add_argument(
         "--count",
         type=int,
-        default=1,
-        help="Number of instances; models distributed round-robin (default: 1)",
+        default=25,
+        help="Number of instances; models distributed round-robin (default: 25)",
     )
     parser.add_argument(
-        "--workers", type=int, default=10, help="Parallel workers for instance setup (default: 10)"
+        "--workers", type=int, default=25, help="Parallel workers for instance setup (default: 25)"
     )
     parser.add_argument(
         "--key",
