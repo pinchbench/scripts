@@ -49,3 +49,5 @@ models:
   - openrouter/z-ai/glm-5
   - openrouter/z-ai/glm-5-turbo
   - openrouter/xiaomi/mimo-v2-flash
+  - openrouter/openrouter/hunter-alpha
+  - openrouter/openrouter/healer-alpha
