@@ -60,7 +60,7 @@ class VultrConfig:
     region: str = "atl"
     plan: str = "vc2-1c-2gb"
     snapshot: str = DEFAULT_SNAPSHOT
-    ssh_keys: str = "a4b8f6d9-fa2e-48a4-b12d-b6162d065e52"
+    ssh_keys: str = "4d587b8f-0641-4007-8b47-76272dd2b53d"
 
 
 def timestamp() -> str:
@@ -303,7 +303,7 @@ Examples:
     parser.add_argument("--region", default="atl")
     parser.add_argument("--plan", default="vc2-1c-2gb")
     parser.add_argument("--snapshot", default=DEFAULT_SNAPSHOT)
-    parser.add_argument("--ssh-keys", default="a4b8f6d9-fa2e-48a4-b12d-b6162d065e52")
+    parser.add_argument("--ssh-keys", default="4d587b8f-0641-4007-8b47-76272dd2b53d")
     parser.add_argument(
         "--ip-timeout",
         type=int,
