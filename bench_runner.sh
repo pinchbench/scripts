@@ -213,7 +213,7 @@ for model in "${MODELS[@]}"; do
     rm -f "$MODEL_TMPFILE"
 
     # Extract score, submission ID, and leaderboard URL from model run output
-    MODEL_SCORE=$(echo "$MODEL_OUTPUT" | grep -oP "Final score: \K[\d.]+/[\d.]+ \([\d.]+%\)" | head -1 || true)
+    MODEL_SCORE=$(echo "$MODEL_OUTPUT" | grep -oP "Overall Score: \K[\d.]+% \([\d.]+ / [\d.]+\)" | head -1 || true)
     MODEL_SUBMISSION=$(echo "$MODEL_OUTPUT" | grep -i "Submission ID" | grep -oE '[a-f0-9-]{36}' | head -1 || true)
     MODEL_URL=$(echo "$MODEL_OUTPUT" | grep -i "View at" | grep -oE 'https?://[^ ]+' | head -1 || true)
     
