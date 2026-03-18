@@ -62,12 +62,14 @@ for tool in curl jq uv vultr; do
     fi
 done
 
-# ── Get instance ID from Vultr metadata ──
+# ── Get instance ID and IP from Vultr metadata ──
 echo "Fetching instance metadata..."
 INSTANCE_ID=""
+INSTANCE_IP=""
 for attempt in $(seq 1 12); do
     INSTANCE_ID=$(curl -sf --retry 3 --retry-delay 5 "$METADATA/v1/instance-v2-id" 2>/dev/null || true)
-    if [ -n "$INSTANCE_ID" ]; then
+    INSTANCE_IP=$(curl -sf --retry 3 --retry-delay 5 "$METADATA/v1/interfaces/0/ipv4/address" 2>/dev/null || true)
+    if [ -n "$INSTANCE_ID" ] && [ -n "$INSTANCE_IP" ]; then
         break
     fi
     echo "  Metadata not ready (attempt $attempt/12), retrying in 10s..."
@@ -80,6 +82,7 @@ if [ -z "$INSTANCE_ID" ]; then
 fi
 
 echo "Instance ID: $INSTANCE_ID"
+echo "Instance IP: $INSTANCE_IP"
 
 # ── Register a safety-net self-destruct in 5 hours ──
 # This fires even if the benchmarks hang or the runner crashes after registration.
@@ -168,8 +171,9 @@ rm -f "$REG_TMPFILE"
 if [ "$REGISTER_EXIT" -ne 0 ]; then
     echo "ERROR: Registration failed"
     slack_notify "❌ *bench-runner failed* on \`$(hostname)\` ($INSTANCE_ID)
+IP: \`$INSTANCE_IP\`
 Registration failed after assigning models: ${MODELS[*]}
-Check: \`ssh root@$(curl -sf $METADATA/v1/interfaces/0/ipv4/address || echo unknown) tail -f $LOG\`"
+Check: \`ssh root@$INSTANCE_IP tail -f $LOG\`"
     vultr instance delete "$INSTANCE_ID" || true
     exit 1
 fi
@@ -186,6 +190,7 @@ CLAIM_URL=$(echo "$REGISTRATION_OUTPUT" | grep -i "Claim URL" | grep -oE 'https?
 
 MODEL_LIST=$(printf ' • %s\n' "${MODELS[@]}")
 slack_notify "🚀 *bench-runner started* on \`$(hostname)\` ($INSTANCE_ID)
+IP: \`$INSTANCE_IP\`
 Skill git hash: \`$SKILL_GIT_HASH\`
 Official key set: \`$OFFICIAL_KEY_SET\`
 Models (${#MODELS[@]}):
@@ -264,6 +269,7 @@ $(printf ' • %s\n' "${RESULT_URLS[@]}")"
 fi
 
 slack_notify "$SUMMARY_EMOJI *bench-runner done* on \`$(hostname)\` ($INSTANCE_ID)
+IP: \`$INSTANCE_IP\`
 $SUMMARY_STATUS
 ${CLAIM_URL:+Claim URL: $CLAIM_URL}$RESULTS_SECTION
 Destroying instance now."
