@@ -1,5 +1,12 @@
 ## Snapshot versions
 
+## 2026-03-18
+
+Updated to include new bench_runner
+
+- "bench-runner 2026-03-18v1"
+- `aa7e31b9-6b7a-42db-901c-0211d0b4e871`
+
 ## 2026-03-09
 
 After some more runner info added to slack
