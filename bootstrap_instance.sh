@@ -28,6 +28,9 @@ set -euo pipefail
 SKILL_DIR="/root/skill"
 REPO_URL="https://github.com/pinchbench/skill.git"
 LOG="/var/log/bootstrap.log"
+BOOTSTRAP_SRC="$(readlink -f "${BASH_SOURCE[0]}")"
+RUNNER_BUNDLE_HASH=""
+RUNNER_HASH_RECORD="/root/bootstrap-runner-hashes.txt"
 
 exec > >(tee -a "$LOG") 2>&1
 
@@ -249,6 +252,29 @@ systemctl daemon-reload
 systemctl enable bench-runner.service
 echo "✓ Service installed and enabled ($(systemctl is-enabled bench-runner.service))"
 
+# ── Hash snapshot bootstrap artifacts ──
+echo ""
+echo "--- Hashing snapshot bootstrap artifacts ---"
+BOOTSTRAP_SHA256=$(sha256sum "$BOOTSTRAP_SRC" | awk '{print $1}')
+RUNNER_SHA256=$(sha256sum "$RUNNER_SRC" | awk '{print $1}')
+SERVICE_SHA256=$(sha256sum "$SERVICE_SRC" | awk '{print $1}')
+RUNNER_BUNDLE_HASH=$(printf '%s\n' \
+    "bootstrap_instance.sh:$BOOTSTRAP_SHA256" \
+    "bench_runner.sh:$RUNNER_SHA256" \
+    "bench-runner.service:$SERVICE_SHA256" \
+    | sha256sum | awk '{print $1}')
+
+cat > "$RUNNER_HASH_RECORD" <<EOF
+generated_at_utc: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+bootstrap_instance.sh: $BOOTSTRAP_SHA256
+bench_runner.sh: $RUNNER_SHA256
+bench-runner.service: $SERVICE_SHA256
+runner_hash: $RUNNER_BUNDLE_HASH
+EOF
+
+echo "✓ runner hash: $RUNNER_BUNDLE_HASH"
+echo "  hash record: $RUNNER_HASH_RECORD"
+
 # ── Reset cloud-init ──
 echo ""
 echo "--- Resetting cloud-init ---"
@@ -266,6 +292,7 @@ echo -n "  at:               "; at -V 2>&1 || true
 echo -n "  openclaw:         "; openclaw --version 2>/dev/null || echo "(check manually)"
 echo -n "  runner script:    "; ls -la /root/run_benchmarks.sh
 echo -n "  service enabled:  "; systemctl is-enabled bench-runner.service
+echo -n "  runner hash:      "; echo "$RUNNER_BUNDLE_HASH"
 echo -n "  repo:             "; git -C "$SKILL_DIR" log -1 --oneline
 echo ""
 echo "Credentials set:"
@@ -279,7 +306,10 @@ echo "Next steps:"
 echo "  1. Instance is shutting down now"
 echo "  2. Take snapshot:"
 echo "       vultr snapshot create -i <id> -d \"bench-runner $(date +%Y-%m-%d)\""
-echo "  3. Note the new snapshot ID and update in:"
+echo "  3. Record this runner hash in docs/snapshot-versions.md:"
+echo "       $RUNNER_BUNDLE_HASH"
+echo "     (full per-file hashes are in $RUNNER_HASH_RECORD)"
+echo "  4. Note the new snapshot ID and update in:"
 echo "       orchestrate_vultr.py  (VultrConfig.snapshot default)"
 echo "       create_instance.sh    (--snapshot flag)"
 echo ""

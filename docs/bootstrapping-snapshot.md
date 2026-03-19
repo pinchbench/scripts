@@ -35,10 +35,14 @@ scp bootstrap_instance.sh \
     root@<ip>:/tmp/
 ```
 
-### 3. Run the bootstrap script
+### 3. SSH into the instance and run the bootstrap script
 
 ```bash
-ssh root@<ip> 'bash /tmp/bootstrap_instance.sh'
+ssh root@<ip>
+```
+
+```bash
+'bash /tmp/bootstrap_instance.sh'
 ```
 
 The script will prompt for:
@@ -53,7 +57,9 @@ The script will prompt for:
 
 It installs Node 22, uv, vultr-cli, OpenClaw, clones the skill repo, pre-installs
 Python deps, writes credentials to `/etc/environment`, installs and enables
-`bench-runner.service`, and resets cloud-init.
+`bench-runner.service`, computes a runner bundle hash for the three bootstrapped
+files (`bootstrap_instance.sh`, `bench_runner.sh`, `bench-runner.service`), and
+resets cloud-init.
 
 The bootstrap script is idempotent — if it fails partway through, fix the issue
 and re-run it. Already-installed tools will be skipped.
@@ -75,9 +81,17 @@ Wait for the snapshot status to become `complete`:
 watch vultr snapshot list
 ```
 
-### 5. Update the snapshot ID
+### 5. Update snapshot metadata
 
-Update the snapshot ID in two places:
+Update `docs/snapshot-versions.md` with a new table row that includes:
+
+- Date
+- Snapshot name
+- Snapshot ID
+- `Runner Hash` (printed by `bootstrap_instance.sh` and saved to `/root/bootstrap-runner-hashes.txt`)
+- Notes
+
+Then update the snapshot ID in two places:
 
 **`scripts/orchestrate_vultr.py`** — `VultrConfig.snapshot` default:
 
