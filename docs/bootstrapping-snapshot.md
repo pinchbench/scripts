@@ -18,6 +18,8 @@ vultr instance create \
   --output json
 ```
 
+Note: `4d587b8f-0641-4007-8b47-76272dd2b53d` = popos / `a4b8f6d9-fa2e-48a4-b12d-b6162d065e52` = mbp
+
 Wait for it to become active and get its IP:
 
 ```bash

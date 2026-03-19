@@ -7,6 +7,11 @@ Updated to include new bench_runner
 - "bench-runner 2026-03-18v1"
 - `aa7e31b9-6b7a-42db-901c-0211d0b4e871`
 
+Added more parsing of the results
+
+- "bench-runner 2026-03-18v2"
+- `484450bc-bf3b-400e-92d6-c39ce839c86b`
+
 ## 2026-03-09
 
 After some more runner info added to slack
