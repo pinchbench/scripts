@@ -2,6 +2,11 @@
 
 ## 2026-03-18
 
+Updated with fail fast on bad model / no sanity check
+
+- "bench-runner 2026-03-18v3"
+- `44532e98-d44d-40be-a284-8c71e6e94489`
+
 Updated to include new bench_runner
 
 - "bench-runner 2026-03-18v1"

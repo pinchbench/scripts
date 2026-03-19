@@ -3,7 +3,7 @@
 #
 # Reads the model list from the Vultr instance metadata API (set as userdata
 # by the orchestrator), runs registration and benchmarks for each model,
-# then self-destructs the instance.
+# and self-destructs the instance on full success.
 #
 # This script is invoked by bench-runner.service (systemd) on first boot.
 # It should be placed at /root/run_benchmarks.sh on the snapshot image.
@@ -173,8 +173,8 @@ if [ "$REGISTER_EXIT" -ne 0 ]; then
     slack_notify "❌ *bench-runner failed* on \`$(hostname)\` ($INSTANCE_ID)
 IP: \`$INSTANCE_IP\`
 Registration failed after assigning models: ${MODELS[*]}
+Instance retained for debugging.
 Check: \`ssh root@$INSTANCE_IP tail -f $LOG\`"
-    vultr instance delete "$INSTANCE_ID" || true
     exit 1
 fi
 echo "✓ Registration complete"
@@ -200,8 +200,12 @@ ${CLAIM_URL:+Claim URL: $CLAIM_URL}"
 # ── Run benchmarks ──
 FAILED_MODELS=()
 RESULT_URLS=()
+SKIPPED_MODELS=()
+FAIL_FAST_TRIGGERED=0
+FAIL_FAST_MODEL=""
 
-for model in "${MODELS[@]}"; do
+for i in "${!MODELS[@]}"; do
+    model="${MODELS[$i]}"
     echo ""
     echo "=== Benchmarking: $model ==="
     echo "Started at: $(date -u)"
@@ -232,6 +236,25 @@ for model in "${MODELS[@]}"; do
 
     if [ "$MODEL_EXIT" -eq 0 ]; then
         echo "✓ $model complete at $(date -u)"
+    elif [ "$MODEL_EXIT" -eq 3 ]; then
+        echo "🚨 FAIL FAST triggered by $model (exit code 3)"
+        FAILED_MODELS+=("$model")
+        if [ "$i" -lt "$(( ${#MODELS[@]} - 1 ))" ]; then
+            SKIPPED_MODELS=("${MODELS[@]:$((i + 1))}")
+        fi
+        FAIL_FAST_TRIGGERED=1
+        FAIL_FAST_MODEL="$model"
+        FAIL_FAST_SKIPPED_LIST=""
+        if [ ${#SKIPPED_MODELS[@]} -gt 0 ]; then
+            FAIL_FAST_SKIPPED_LIST=$(printf ' • %s\n' "${SKIPPED_MODELS[@]}")
+        fi
+        slack_notify "🚨 *bench-runner fail-fast* on \`$(hostname)\` ($INSTANCE_ID)
+IP: \`$INSTANCE_IP\`
+Model: \`$model\`
+Reason: sanity check scored 0% (exit code 3)
+Skipped (${#SKIPPED_MODELS[@]}):
+$FAIL_FAST_SKIPPED_LIST"
+        break
     else
         echo "✗ $model failed at $(date -u)"
         FAILED_MODELS+=("$model")
@@ -243,15 +266,35 @@ echo ""
 echo "=== Run complete at $(date -u) ==="
 echo "Total models: ${#MODELS[@]}"
 echo "Failed:       ${#FAILED_MODELS[@]}"
+if [ "$FAIL_FAST_TRIGGERED" -eq 1 ]; then
+    echo "Fail-fast:    yes (triggered by $FAIL_FAST_MODEL)"
+    echo "Skipped:      ${#SKIPPED_MODELS[@]}"
+fi
 if [ ${#FAILED_MODELS[@]} -gt 0 ]; then
     echo "Failed models:"
     for m in "${FAILED_MODELS[@]}"; do
         echo "  - $m"
     done
 fi
+if [ ${#SKIPPED_MODELS[@]} -gt 0 ]; then
+    echo "Skipped models:"
+    for m in "${SKIPPED_MODELS[@]}"; do
+        echo "  - $m"
+    done
+fi
 
-SUCCEEDED=$(( ${#MODELS[@]} - ${#FAILED_MODELS[@]} ))
-if [ ${#FAILED_MODELS[@]} -eq 0 ]; then
+PROCESSED=$(( ${#MODELS[@]} - ${#SKIPPED_MODELS[@]} ))
+SUCCEEDED=$(( PROCESSED - ${#FAILED_MODELS[@]} ))
+if [ "$FAIL_FAST_TRIGGERED" -eq 1 ]; then
+    SUMMARY_EMOJI="🚨"
+    SKIPPED_LIST=""
+    if [ ${#SKIPPED_MODELS[@]} -gt 0 ]; then
+        SKIPPED_LIST=$(printf ' • %s\n' "${SKIPPED_MODELS[@]}")
+    fi
+    SUMMARY_STATUS="fail-fast triggered by $FAIL_FAST_MODEL after $SUCCEEDED/${#MODELS[@]} succeeded.
+Skipped (${#SKIPPED_MODELS[@]}):
+$SKIPPED_LIST"
+elif [ ${#FAILED_MODELS[@]} -eq 0 ]; then
     SUMMARY_EMOJI="✅"
     SUMMARY_STATUS="all ${#MODELS[@]} models completed"
 else
@@ -259,6 +302,17 @@ else
     FAILED_LIST=$(printf ' • %s\n' "${FAILED_MODELS[@]}")
     SUMMARY_STATUS="$SUCCEEDED/${#MODELS[@]} succeeded. Failed:
 $FAILED_LIST"
+fi
+
+SHOULD_DESTROY=1
+if [ "$FAIL_FAST_TRIGGERED" -eq 1 ] || [ ${#FAILED_MODELS[@]} -gt 0 ]; then
+    SHOULD_DESTROY=0
+fi
+
+if [ "$SHOULD_DESTROY" -eq 1 ]; then
+    LIFECYCLE_NOTE="Destroying instance now."
+else
+    LIFECYCLE_NOTE="Instance retained for debugging (safety-net auto-delete is still scheduled)."
 fi
 
 RESULTS_SECTION=""
@@ -272,14 +326,20 @@ slack_notify "$SUMMARY_EMOJI *bench-runner done* on \`$(hostname)\` ($INSTANCE_I
 IP: \`$INSTANCE_IP\`
 $SUMMARY_STATUS
 ${CLAIM_URL:+Claim URL: $CLAIM_URL}$RESULTS_SECTION
-Destroying instance now."
+$LIFECYCLE_NOTE"
 
 # ── Self-destruct ──
-echo ""
-echo "=== Deleting instance $INSTANCE_ID ==="
-if vultr instance delete "$INSTANCE_ID"; then
-    echo "✓ Instance deletion requested"
+if [ "$SHOULD_DESTROY" -eq 1 ]; then
+    echo ""
+    echo "=== Deleting instance $INSTANCE_ID ==="
+    if vultr instance delete "$INSTANCE_ID"; then
+        echo "✓ Instance deletion requested"
+    else
+        echo "WARNING: Self-destruct failed — instance $INSTANCE_ID may need manual cleanup"
+        echo "Run: vultr instance delete $INSTANCE_ID"
+    fi
 else
-    echo "WARNING: Self-destruct failed — instance $INSTANCE_ID may need manual cleanup"
-    echo "Run: vultr instance delete $INSTANCE_ID"
+    echo ""
+    echo "=== Instance retained for debugging: $INSTANCE_ID ($INSTANCE_IP) ==="
+    echo "Run when done: vultr instance delete $INSTANCE_ID"
 fi
