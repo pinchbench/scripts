@@ -41,8 +41,8 @@ models:
   - openrouter/minimax/minimax-m2.1
   - openrouter/minimax/minimax-m2.5
   # Xiaomi
-  - xiaomi/mimo-v2-pro
-  - xiaomi/mimo-v2-omni
+  - openrouter/xiaomi/mimo-v2-pro
+  - openrouter/xiaomi/mimo-v2-omni
   - openrouter/xiaomi/mimo-v2-flash
   # Other
   - openrouter/arcee-ai/trinity-large-preview:free
