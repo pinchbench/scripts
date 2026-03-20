@@ -50,7 +50,7 @@ except ImportError:
 
 # See docs/snapshot-versions.md
 
-DEFAULT_SNAPSHOT = "0b4273c2-ddee-4bd8-b56b-596111207145" # Last known good: "541697a1-c04c-4f54-bfc7-8ee90ae93aed"
+DEFAULT_SNAPSHOT = "44532e98-d44d-40be-a284-8c71e6e94489" # Last known good: "0b4273c2-ddee-4bd8-b56b-596111207145"
 
 
 @dataclass(frozen=True)
