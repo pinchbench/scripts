@@ -42,4 +42,5 @@ models:
   - openrouter/z-ai/glm-4.5-air
   - openrouter/z-ai/glm-5
   - openrouter/z-ai/glm-5-turbo
+  - openrouter/kiwi//Agnes-Claw
   
