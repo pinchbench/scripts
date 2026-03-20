@@ -19,10 +19,10 @@ Usage:
 Options:
   --models:  Space-separated list of models to benchmark
   --models-file: YAML file with default models (e.g. default-models.yml)
-  --count:   Number of instances to create (default: 1)
+  --count:   Number of instances to create (default: 25)
              Models are distributed round-robin across instances.
              e.g. 9 models across 3 instances = 3 models per instance.
-  --workers: Parallel SSH workers for writing model files (default: 10)
+  --workers: Parallel SSH workers for writing model files (default: 25)
   --key:     Path to SSH private key (default: ~/.ssh/id_ed25519)
 """
 
@@ -50,7 +50,7 @@ except ImportError:
 
 # See docs/snapshot-versions.md
 
-DEFAULT_SNAPSHOT = "0b4273c2-ddee-4bd8-b56b-596111207145" # Last known good: "541697a1-c04c-4f54-bfc7-8ee90ae93aed"
+DEFAULT_SNAPSHOT = "44532e98-d44d-40be-a284-8c71e6e94489" # Last known good: "0b4273c2-ddee-4bd8-b56b-596111207145"
 
 
 @dataclass(frozen=True)
@@ -60,7 +60,7 @@ class VultrConfig:
     region: str = "atl"
     plan: str = "vc2-1c-2gb"
     snapshot: str = DEFAULT_SNAPSHOT
-    ssh_keys: str = "a4b8f6d9-fa2e-48a4-b12d-b6162d065e52"
+    ssh_keys: str = "4d587b8f-0641-4007-8b47-76272dd2b53d"
 
 
 def timestamp() -> str:
@@ -289,11 +289,11 @@ Examples:
     parser.add_argument(
         "--count",
         type=int,
-        default=1,
-        help="Number of instances; models distributed round-robin (default: 1)",
+        default=25,
+        help="Number of instances; models distributed round-robin (default: 25)",
     )
     parser.add_argument(
-        "--workers", type=int, default=10, help="Parallel workers for instance setup (default: 10)"
+        "--workers", type=int, default=25, help="Parallel workers for instance setup (default: 25)"
     )
     parser.add_argument(
         "--key",
@@ -303,7 +303,7 @@ Examples:
     parser.add_argument("--region", default="atl")
     parser.add_argument("--plan", default="vc2-1c-2gb")
     parser.add_argument("--snapshot", default=DEFAULT_SNAPSHOT)
-    parser.add_argument("--ssh-keys", default="a4b8f6d9-fa2e-48a4-b12d-b6162d065e52")
+    parser.add_argument("--ssh-keys", default="4d587b8f-0641-4007-8b47-76272dd2b53d")
     parser.add_argument(
         "--ip-timeout",
         type=int,
