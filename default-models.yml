@@ -19,18 +19,6 @@ models:
   - openrouter/google/gemini-2.5-pro
   - openrouter/google/gemini-3-flash-preview
   - openrouter/google/gemini-3.1-pro-preview
-  # Meta
-  - openrouter/meta-llama/llama-3.1-70b-instruct
-  - openrouter/meta-llama/llama-4-maverick
-  - openrouter/meta-llama/llama-4-scout
-  # Qwen
-  - openrouter/qwen/qwen-2.5-7b-instruct
-  - openrouter/qwen/qwen3-max-thinking
-  - openrouter/qwen/qwen3.5-27b
-  - openrouter/qwen/qwen3.5-35b-a3b
-  - openrouter/qwen/qwen3.5-122b-a10b
-  - openrouter/qwen/qwen3.5-397b-a17b
-  - openrouter/qwen/qwen3.5-plus-02-15
   # Mistral
   - openrouter/mistralai/mistral-large-2512
   - openrouter/mistralai/devstral-2512
@@ -40,6 +28,7 @@ models:
   # MiniMax
   - openrouter/minimax/minimax-m2.1
   - openrouter/minimax/minimax-m2.5
+  - openrouter/minimax/minimax-m2.7
   # Xiaomi
   - openrouter/xiaomi/mimo-v2-pro
   - openrouter/xiaomi/mimo-v2-omni
