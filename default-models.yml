@@ -36,6 +36,7 @@ models:
   # Other
   - openrouter/arcee-ai/trinity-large-preview:free
   - openrouter/moonshotai/kimi-k2.5
+  - openrouter/amazon/nova-2-lite-v1
   - openrouter/nvidia/nemotron-3-super-120b-a12b:free
   - openrouter/stepfun/step-3.5-flash
   - openrouter/x-ai/grok-4.1-fast
