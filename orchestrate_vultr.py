@@ -49,8 +49,11 @@ except ImportError:
     sys.exit(1)
 
 # See docs/snapshot-versions.md
+# Known good snapshots:
+# 2026-03-18v3: 44532e98-d44d-40be-a284-8c71e6e94489
+# 2026-03-09v2: 0b4273c2-ddee-4bd8-b56b-596111207145
 
-DEFAULT_SNAPSHOT = "44532e98-d44d-40be-a284-8c71e6e94489" # Last known good: "0b4273c2-ddee-4bd8-b56b-596111207145"
+DEFAULT_SNAPSHOT = "44532e98-d44d-40be-a284-8c71e6e94489" 
 
 
 @dataclass(frozen=True)
