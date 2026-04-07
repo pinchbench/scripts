@@ -14,7 +14,7 @@ vultr instance create \
   --plan vc2-1c-2gb \
   --os 1743 \
   --label bench-bootstrap \
-  --ssh-keys a4b8f6d9-fa2e-48a4-b12d-b6162d065e52 \
+  --ssh-keys 4d587b8f-0641-4007-8b47-76272dd2b53d \
   --output json
 ```
 
@@ -42,7 +42,7 @@ ssh root@<ip>
 ```
 
 ```bash
-'bash /tmp/bootstrap_instance.sh'
+bash /tmp/bootstrap_instance.sh
 ```
 
 The script will prompt for:
@@ -54,6 +54,8 @@ The script will prompt for:
 | `VULTR_API_KEY`           | Vultr portal → Account → API                                 |
 | `PINCHBENCH_OFFICIAL_KEY` | `skill/.env` (optional — skip for unofficial submissions)    |
 | `SLACK_WEBHOOK_URL`       | Slack app webhook (optional — skip to disable notifications) |
+
+These are stored in https://start.1password.com/open/i?a=DPJDZHCBVJF5DH4DI2MPUJE5RU&v=7oucpql7sjzzkkhkbzn5tzw55a&i=qkzgkde4tdxoagks5gys4yb3ga&h=kilocode.1password.com.
 
 It installs Node 22, uv, vultr-cli, OpenClaw, clones the skill repo, pre-installs
 Python deps, writes credentials to `/etc/environment`, installs and enables

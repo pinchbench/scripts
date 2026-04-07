@@ -1,7 +1,8 @@
 ## Snapshot versions
 
 | Date       | Snapshot Name              | Snapshot ID                            | Runner Hash | Notes                                                                    |
-| ---------- | -------------------------- | -------------------------------------- | ----------- | ------------------------------------------------------------------------ |
+|------------|----------------------------|----------------------------------------|-------------|--------------------------------------------------------------------------|
+| 2026-04-06 | bench-runner 2026-04-06    | `79926f8e-38c7-49b2-b99e-fbba3e0aa4e3` |             | Updated to v1.2.0                                                        |
 | 2026-03-18 | bench-runner 202           | `82d444ad-ef4d-4b57-b873-ecceadddf0c3` |             | After a number of fixes to the skill itself                              |
 | 2026-03-18 | bench-runner 2026-03-18v3  | `44532e98-d44d-40be-a284-8c71e6e94489` |             | Updated with fail fast on bad model / no sanity check                    |
 | 2026-03-18 | bench-runner 2026-03-18v1  | `aa7e31b9-6b7a-42db-901c-0211d0b4e871` |             | Updated to include new bench_runner                                      |
