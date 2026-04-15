@@ -88,8 +88,8 @@ echo "Instance IP: $INSTANCE_IP"
 # This fires even if the benchmarks hang or the runner crashes after registration.
 # Requires 'at' to be available (installed by setup_snapshot.sh).
 if command -v at &>/dev/null && [ -n "$INSTANCE_ID" ]; then
-    echo "vultr instance delete $INSTANCE_ID" | at now + 5 hours 2>/dev/null && \
-        echo "Safety-net self-destruct scheduled in 5 hours" || \
+    echo "vultr instance delete $INSTANCE_ID" | at now + 24 hours 2>/dev/null && \
+        echo "Safety-net self-destruct scheduled in 24 hours" || \
         echo "WARNING: Could not schedule safety-net self-destruct (at daemon not running?)"
 fi
 
