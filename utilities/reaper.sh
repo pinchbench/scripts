@@ -4,8 +4,8 @@
 
 set -euo pipefail
 
-# Default TTL: 6 hours in seconds
-DEFAULT_TTL=21600
+# Default TTL: 24 hours in seconds
+DEFAULT_TTL=86400
 
 usage() {
   cat <<EOF
