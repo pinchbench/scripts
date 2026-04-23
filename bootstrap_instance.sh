@@ -145,6 +145,14 @@ else
     echo "✓ OpenClaw $(openclaw --version 2>/dev/null || echo installed)"
 fi
 
+# ── OpenClaw optional peer dependencies ──
+# These are optional deps that OpenClaw may need at runtime but doesn't
+# auto-install. Missing them causes "Cannot find module" errors.
+echo ""
+echo "--- Installing OpenClaw peer dependencies ---"
+npm install -g @slack/web-api
+echo "✓ OpenClaw peer dependencies installed"
+
 # ── Clone benchmark repo ──
 echo ""
 echo "--- Cloning benchmark repo ---"
