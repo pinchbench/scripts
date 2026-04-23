@@ -14,9 +14,7 @@ ExecStart=/root/run_benchmarks.sh
 # Don't restart on failure — avoids runaway billing if the script has a bug.
 Restart=no
 RemainAfterExit=yes
-# 6 hours: generous upper bound for even very slow models; safety-net 'at' job
-# fires at 5 hours regardless.
-TimeoutStartSec=21600
+TimeoutStartSec=86400
 # Load VULTR_API_KEY and any other env vars written to /etc/environment
 EnvironmentFile=-/etc/environment
 # Write service output to the journal (viewable with journalctl -u bench-runner)
