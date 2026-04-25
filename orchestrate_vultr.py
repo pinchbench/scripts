@@ -160,14 +160,21 @@ def wait_for_ssh(ip: str, timeout: int = 600) -> None:
 
 
 def write_model_file(
-    ip: str, models: list[str], key_path: str, official_key: str | None = None
+    ip: str,
+    models: list[str],
+    key_path: str,
+    official_key: str | None = None,
+    axiom_token: str | None = None,
 ) -> None:
     """
     SSH into the instance and write /root/benchmark_models.txt.
 
-    Optionally also writes /root/benchmark_official_key.txt when official_key is provided.
-    This is a brief connection — we write one file and disconnect.
-    The bench-runner.service is already running and waiting for this file.
+    Optionally also writes:
+    - /root/benchmark_official_key.txt when official_key is provided
+    - /root/benchmark_axiom_token.txt when axiom_token is provided
+
+    This is a brief connection — we write files and disconnect.
+    The bench-runner.service is already running and waiting for these files.
     """
     key_path = os.path.expanduser(key_path)
     client = paramiko.SSHClient()
@@ -198,6 +205,18 @@ def write_model_file(
             if exit_status2 != 0:
                 err2 = stderr2.read().decode().strip()
                 raise RuntimeError(f"Failed to write official key file on {ip}: {err2}")
+
+        if axiom_token:
+            escaped_axiom = axiom_token.replace("'", "'\\''")
+            axiom_cmd = (
+                f"printf '%s' '{escaped_axiom}' > /root/benchmark_axiom_token.txt.tmp && "
+                f"mv /root/benchmark_axiom_token.txt.tmp /root/benchmark_axiom_token.txt"
+            )
+            _, stdout3, stderr3 = client.exec_command(axiom_cmd)
+            exit_status3 = stdout3.channel.recv_exit_status()
+            if exit_status3 != 0:
+                err3 = stderr3.read().decode().strip()
+                raise RuntimeError(f"Failed to write Axiom token file on {ip}: {err3}")
     finally:
         client.close()
 
@@ -210,6 +229,7 @@ def launch_instance(
     ip_timeout: int,
     ssh_timeout: int,
     official_key: str | None = None,
+    axiom_token: str | None = None,
 ) -> tuple[str, str, str]:
     """
     Full lifecycle for one instance: create → wait for IP → wait for SSH → write model file.
@@ -226,7 +246,7 @@ def launch_instance(
     wait_for_ssh(ip, timeout=ssh_timeout)
     log(f"  [{label}] SSH ready — writing model assignment...")
 
-    write_model_file(ip, models, key_path, official_key=official_key)
+    write_model_file(ip, models, key_path, official_key=official_key, axiom_token=axiom_token)
     log(f"  [{label}] ✓ Models written. Instance is running headlessly.")
 
     return label, instance_id, ip
@@ -328,6 +348,13 @@ Examples:
         help="Official key to mark submissions as official (can also use PINCHBENCH_OFFICIAL_KEY env var)",
     )
     parser.add_argument(
+        "--axiom-token",
+        type=str,
+        default=os.environ.get("AXIOM_API_TOKEN"),
+        metavar="TOKEN",
+        help="Axiom API token for observability logging (can also use AXIOM_API_TOKEN env var)",
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
         help="Enable verbose debug logging for scheduling/executor flow",
@@ -391,6 +418,7 @@ Examples:
                 args.ip_timeout,
                 args.ssh_timeout,
                 args.official_key,
+                args.axiom_token,
             ): (
                 i,
                 bucket,

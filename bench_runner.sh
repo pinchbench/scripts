@@ -149,6 +149,21 @@ else
     echo "No official key found — submissions will be unofficial"
 fi
 
+# ── Read optional Axiom token for observability ──
+AXIOM_TOKEN_FILE="/root/benchmark_axiom_token.txt"
+if [ -s "$AXIOM_TOKEN_FILE" ]; then
+    export AXIOM_API_TOKEN=$(cat "$AXIOM_TOKEN_FILE")
+    echo "Axiom logging enabled from $AXIOM_TOKEN_FILE"
+elif [ -n "${AXIOM_API_TOKEN:-}" ]; then
+    echo "Axiom logging enabled from AXIOM_API_TOKEN env var"
+else
+    echo "Axiom logging disabled (no token found)"
+fi
+
+# Export Vultr instance metadata for Axiom events
+export VULTR_INSTANCE_ID="$INSTANCE_ID"
+export VULTR_INSTANCE_IP="$INSTANCE_IP"
+
 # ── Pull latest benchmark code ──
 echo ""
 echo "=== Updating benchmark code ==="
