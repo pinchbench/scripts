@@ -36,6 +36,7 @@ models:
   - openrouter/stepfun/step-3.5-flash
   - openrouter/x-ai/grok-4.1-fast
   - openrouter/x-ai/grok-4.20
+  - openrouter/x-ai/grok-4.3
   - openrouter/z-ai/glm-5
   - openrouter/z-ai/glm-5-turbo
   - openrouter/z-ai/glm-5v-turbo
