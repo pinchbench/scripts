@@ -17,6 +17,8 @@
 #   - VULTR_API_KEY
 #   - PINCHBENCH_OFFICIAL_KEY (optional)
 #   - SLACK_WEBHOOK_URL (optional)
+#   - AXIOM_TOKEN (optional)
+#   - AXIOM_ORG_ID (optional)
 #
 # After the script exits the instance will be shut down. Take a snapshot from
 # the Vultr portal or with:
@@ -65,6 +67,10 @@ fi
 read -r -p "PINCHBENCH_OFFICIAL_KEY (optional, press Enter to skip): " PINCHBENCH_OFFICIAL_KEY
 
 read -r -p "SLACK_WEBHOOK_URL (optional, press Enter to skip): " SLACK_WEBHOOK_URL
+
+read -r -p "AXIOM_TOKEN (optional, press Enter to skip): " AXIOM_TOKEN
+
+read -r -p "AXIOM_ORG_ID (optional, press Enter to skip): " AXIOM_ORG_ID
 
 echo ""
 echo "=== Starting installation ==="
@@ -153,6 +159,27 @@ echo "--- Installing OpenClaw peer dependencies ---"
 npm install -g @slack/web-api
 echo "✓ OpenClaw peer dependencies installed"
 
+# ── Configure OpenClaw main agent with OpenRouter ──
+echo ""
+echo "--- Configuring OpenClaw main agent ---"
+MAIN_AGENT_DIR="/root/.openclaw/agents/main/agent"
+mkdir -p "$MAIN_AGENT_DIR"
+cat > "$MAIN_AGENT_DIR/models.json" <<MODELS_EOF
+{
+  "models": {
+    "providers": {
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "apiKey": "${OPENROUTER_API_KEY}",
+        "api": "openai-completions"
+      }
+    }
+  },
+  "defaultProvider": "openrouter",
+}
+MODELS_EOF
+echo "✓ OpenClaw main agent models.json configured"
+
 # ── Clone benchmark repo ──
 echo ""
 echo "--- Cloning benchmark repo ---"
@@ -181,6 +208,8 @@ sed -i '/^PINCHBENCH_TOKEN=/d' /etc/environment
 sed -i '/^VULTR_API_KEY=/d' /etc/environment
 sed -i '/^PINCHBENCH_OFFICIAL_KEY=/d' /etc/environment
 sed -i '/^SLACK_WEBHOOK_URL=/d' /etc/environment
+sed -i '/^AXIOM_TOKEN=/d' /etc/environment
+sed -i '/^AXIOM_ORG_ID=/d' /etc/environment
 
 cat >> /etc/environment <<EOF
 OPENROUTER_API_KEY=$OPENROUTER_API_KEY
@@ -196,6 +225,14 @@ if [ -n "$SLACK_WEBHOOK_URL" ]; then
     echo "SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL" >> /etc/environment
 fi
 
+if [ -n "$AXIOM_TOKEN" ]; then
+    echo "AXIOM_TOKEN=$AXIOM_TOKEN" >> /etc/environment
+fi
+
+if [ -n "$AXIOM_ORG_ID" ]; then
+    echo "AXIOM_ORG_ID=$AXIOM_ORG_ID" >> /etc/environment
+fi
+
 # Also make available to login shells
 cat > /etc/profile.d/pinchbench.sh <<EOF
 export OPENROUTER_API_KEY=$OPENROUTER_API_KEY
@@ -207,6 +244,12 @@ if [ -n "$PINCHBENCH_OFFICIAL_KEY" ]; then
 fi
 if [ -n "$SLACK_WEBHOOK_URL" ]; then
     echo "export SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL" >> /etc/profile.d/pinchbench.sh
+fi
+if [ -n "$AXIOM_TOKEN" ]; then
+    echo "export AXIOM_TOKEN=$AXIOM_TOKEN" >> /etc/profile.d/pinchbench.sh
+fi
+if [ -n "$AXIOM_ORG_ID" ]; then
+    echo "export AXIOM_ORG_ID=$AXIOM_ORG_ID" >> /etc/profile.d/pinchbench.sh
 fi
 
 echo "✓ Credentials written"
@@ -304,7 +347,7 @@ echo -n "  runner hash:      "; echo "$RUNNER_BUNDLE_HASH"
 echo -n "  repo:             "; git -C "$SKILL_DIR" log -1 --oneline
 echo ""
 echo "Credentials set:"
-grep -E "OPENROUTER_API_KEY|PINCHBENCH_TOKEN|VULTR_API_KEY|PINCHBENCH_OFFICIAL_KEY|SLACK_WEBHOOK_URL" /etc/environment \
+grep -E "OPENROUTER_API_KEY|PINCHBENCH_TOKEN|VULTR_API_KEY|PINCHBENCH_OFFICIAL_KEY|SLACK_WEBHOOK_URL|AXIOM_TOKEN|AXIOM_ORG_ID" /etc/environment \
     | sed 's/=.*/=<set>/'
 
 echo ""

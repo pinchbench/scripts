@@ -2,6 +2,8 @@
 
 | Date       | Snapshot Name              | Snapshot ID                            | Runner Hash | Notes                                                                    |
 |------------|----------------------------|----------------------------------------|-------------|--------------------------------------------------------------------------|
+| 2026-04-30 | bench-runner 2026-04-30v2  | `88a3c26d-c3c8-46aa-9cda-aa596d95cae8` |             | 2.0.0-rc12                                                               |
+| 2026-04-25 | bench-runner 2026-04-25v1  | `96f2c834-f1f0-4813-84f4-728a23c339f0` |             | 2.0.0-rc2                                                                |
 | 2026-04-10 | bench-runner 2026-04-10v1  | `45b38824-a32d-4338-bc1b-0a5c1ce7896a` |             | Testing new skills                                                       |
 | 2026-04-06 | bench-runner 2026-04-06    | `79926f8e-38c7-49b2-b99e-fbba3e0aa4e3` |             | Updated to v1.2.0                                                        |
 | 2026-03-18 | bench-runner 202           | `82d444ad-ef4d-4b57-b873-ecceadddf0c3` |             | After a number of fixes to the skill itself                              |
@@ -17,4 +19,4 @@
 | 2026-03-09 | bench-runner 2026-03-09 v5 | `a0af88a0-ec03-46bf-a288-e0f0ad859550` |             | Still running instance                                                   |
 | 2026-03-09 | bench-runner 2026-03-09 v6 | `3528464a-4710-4e43-b2ff-47643fcabea4` |             | Taken from running instance (bc8b003a @ 96.30.204.111) - boots correctly |
 | 2026-03-xx | benchrunner 2026-03-08 v0  | `c59496ef-734f-48b6-9701-ed80729ddd35` |             | Pre-2026-03-08 snapshots                                                 |
-| 2026-04-15 | bench-runner 2026-04-15     | `63e253a0-2df4-4c65-9147-85c7462a581b` |             | **24h timeout** (was 5h) for longer benchmark runs                       |
+| 2026-04-15 | bench-runner 2026-04-15    | `63e253a0-2df4-4c65-9147-85c7462a581b` |             | **24h timeout** (was 5h) for longer benchmark runs                       |
