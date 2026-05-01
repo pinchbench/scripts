@@ -1,5 +1,6 @@
 models:
   # Anthropic (keep current gen only)
+  - openrouter/anthropic/claude-opus-4.7
   - openrouter/anthropic/claude-opus-4.6
   - openrouter/anthropic/claude-sonnet-4.6
   - openrouter/anthropic/claude-haiku-4.5
@@ -20,22 +21,26 @@ models:
   - openrouter/mistralai/devstral-2512
   # DeepSeek (v3.2 only)
   - openrouter/deepseek/deepseek-v3.2
-  # MiniMax (m2.7 only)
+  # MiniMax
   - openrouter/minimax/minimax-m2.7
   # Xiaomi
   - openrouter/xiaomi/mimo-v2-pro
   - openrouter/xiaomi/mimo-v2-omni
   - openrouter/xiaomi/mimo-v2-flash
   # Other
-  - openrouter/arcee-ai/trinity-large-preview:free
+  - openrouter/arcee-ai/trinity-large-preview
+  - openrouter/arcee-ai/trinity-large-thinking
   - openrouter/moonshotai/kimi-k2.5
   - openrouter/amazon/nova-2-lite-v1
   - openrouter/nvidia/nemotron-3-super-120b-a12b:free
   - openrouter/stepfun/step-3.5-flash
   - openrouter/x-ai/grok-4.1-fast
   - openrouter/x-ai/grok-4.20
+  - openrouter/x-ai/grok-4.3
   - openrouter/z-ai/glm-5
   - openrouter/z-ai/glm-5-turbo
   - openrouter/z-ai/glm-5v-turbo
+  # Qwen
+  - openrouter/qwen/qwen3.6-plus
   # ByteDance
   - openrouter/bytedance-seed/seed-2.0-lite
