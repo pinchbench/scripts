@@ -54,7 +54,7 @@ except ImportError:
 # 2026-03-18v3: 44532e98-d44d-40be-a284-8c71e6e94489
 # 2026-03-09v2: 0b4273c2-ddee-4bd8-b56b-596111207145
 
-DEFAULT_SNAPSHOT = "63e253a0-2df4-4c65-9147-85c7462a581b" 
+DEFAULT_SNAPSHOT = "3ae2877e-ca46-4996-8a4b-7c86c73d3b05" 
 
 
 @dataclass(frozen=True)
@@ -165,6 +165,7 @@ def write_model_file(
     key_path: str,
     official_key: str | None = None,
     axiom_token: str | None = None,
+    no_fail_fast: bool = False,
 ) -> None:
     """
     SSH into the instance and write /root/benchmark_models.txt.
@@ -172,6 +173,7 @@ def write_model_file(
     Optionally also writes:
     - /root/benchmark_official_key.txt when official_key is provided
     - /root/benchmark_axiom_token.txt when axiom_token is provided
+    - /root/benchmark_no_fail_fast.txt when no_fail_fast is True
 
     This is a brief connection — we write files and disconnect.
     The bench-runner.service is already running and waiting for these files.
@@ -217,6 +219,17 @@ def write_model_file(
             if exit_status3 != 0:
                 err3 = stderr3.read().decode().strip()
                 raise RuntimeError(f"Failed to write Axiom token file on {ip}: {err3}")
+
+        if no_fail_fast:
+            nff_cmd = (
+                "printf '1' > /root/benchmark_no_fail_fast.txt.tmp && "
+                "mv /root/benchmark_no_fail_fast.txt.tmp /root/benchmark_no_fail_fast.txt"
+            )
+            _, stdout4, stderr4 = client.exec_command(nff_cmd)
+            exit_status4 = stdout4.channel.recv_exit_status()
+            if exit_status4 != 0:
+                err4 = stderr4.read().decode().strip()
+                raise RuntimeError(f"Failed to write no-fail-fast file on {ip}: {err4}")
     finally:
         client.close()
 
@@ -230,6 +243,7 @@ def launch_instance(
     ssh_timeout: int,
     official_key: str | None = None,
     axiom_token: str | None = None,
+    no_fail_fast: bool = False,
 ) -> tuple[str, str, str]:
     """
     Full lifecycle for one instance: create → wait for IP → wait for SSH → write model file.
@@ -246,7 +260,7 @@ def launch_instance(
     wait_for_ssh(ip, timeout=ssh_timeout)
     log(f"  [{label}] SSH ready — writing model assignment...")
 
-    write_model_file(ip, models, key_path, official_key=official_key, axiom_token=axiom_token)
+    write_model_file(ip, models, key_path, official_key=official_key, axiom_token=axiom_token, no_fail_fast=no_fail_fast)
     log(f"  [{label}] ✓ Models written. Instance is running headlessly.")
 
     return label, instance_id, ip
@@ -364,6 +378,11 @@ Examples:
         action="store_true",
         help="Disable randomization of model order (default: models are shuffled before distribution)",
     )
+    parser.add_argument(
+        "--no-fail-fast",
+        action="store_true",
+        help="Disable fail-fast behavior (continue running all models even if sanity check fails)",
+    )
 
     args = parser.parse_args()
 
@@ -401,6 +420,7 @@ Examples:
     log(f"Models:    {len(models)}")
     log(f"Instances: {args.count} ({len(non_empty)} with models assigned)")
     log(f"Official:  {'yes' if args.official_key else 'no'}")
+    log(f"Fail-fast: {'disabled' if args.no_fail_fast else 'enabled'}")
     log("Note: laptop must stay online ~5m while instances boot")
     log(f"{'=' * 60}\n")
 
@@ -419,6 +439,7 @@ Examples:
                 args.ssh_timeout,
                 args.official_key,
                 args.axiom_token,
+                args.no_fail_fast,
             ): (
                 i,
                 bucket,

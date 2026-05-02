@@ -160,6 +160,16 @@ else
     echo "Axiom logging disabled (no token found)"
 fi
 
+# ── Read optional no-fail-fast flag ──
+NO_FAIL_FAST_FILE="/root/benchmark_no_fail_fast.txt"
+NO_FAIL_FAST=0
+if [ -s "$NO_FAIL_FAST_FILE" ]; then
+    NO_FAIL_FAST=1
+    echo "Fail-fast DISABLED (will continue running all models even on sanity check failure)"
+else
+    echo "Fail-fast enabled (default)"
+fi
+
 # Export Vultr instance metadata for Axiom events
 export VULTR_INSTANCE_ID="$INSTANCE_ID"
 export VULTR_INSTANCE_IP="$INSTANCE_IP"
@@ -252,24 +262,29 @@ for i in "${!MODELS[@]}"; do
     if [ "$MODEL_EXIT" -eq 0 ]; then
         echo "✓ $model complete at $(date -u)"
     elif [ "$MODEL_EXIT" -eq 3 ]; then
-        echo "🚨 FAIL FAST triggered by $model (exit code 3)"
-        FAILED_MODELS+=("$model")
-        if [ "$i" -lt "$(( ${#MODELS[@]} - 1 ))" ]; then
-            SKIPPED_MODELS=("${MODELS[@]:$((i + 1))}")
-        fi
-        FAIL_FAST_TRIGGERED=1
-        FAIL_FAST_MODEL="$model"
-        FAIL_FAST_SKIPPED_LIST=""
-        if [ ${#SKIPPED_MODELS[@]} -gt 0 ]; then
-            FAIL_FAST_SKIPPED_LIST=$(printf ' • %s\n' "${SKIPPED_MODELS[@]}")
-        fi
-        slack_notify "🚨 *bench-runner fail-fast* on \`$(hostname)\` ($INSTANCE_ID)
+        if [ "$NO_FAIL_FAST" -eq 1 ]; then
+            echo "⚠️  Sanity check failed for $model (exit code 3) — continuing (fail-fast disabled)"
+            FAILED_MODELS+=("$model")
+        else
+            echo "🚨 FAIL FAST triggered by $model (exit code 3)"
+            FAILED_MODELS+=("$model")
+            if [ "$i" -lt "$(( ${#MODELS[@]} - 1 ))" ]; then
+                SKIPPED_MODELS=("${MODELS[@]:$((i + 1))}")
+            fi
+            FAIL_FAST_TRIGGERED=1
+            FAIL_FAST_MODEL="$model"
+            FAIL_FAST_SKIPPED_LIST=""
+            if [ ${#SKIPPED_MODELS[@]} -gt 0 ]; then
+                FAIL_FAST_SKIPPED_LIST=$(printf ' • %s\n' "${SKIPPED_MODELS[@]}")
+            fi
+            slack_notify "🚨 *bench-runner fail-fast* on \`$(hostname)\` ($INSTANCE_ID)
 IP: \`$INSTANCE_IP\`
 Model: \`$model\`
 Reason: sanity check scored 0% (exit code 3)
 Skipped (${#SKIPPED_MODELS[@]}):
 $FAIL_FAST_SKIPPED_LIST"
-        break
+            break
+        fi
     else
         echo "✗ $model failed at $(date -u)"
         FAILED_MODELS+=("$model")
