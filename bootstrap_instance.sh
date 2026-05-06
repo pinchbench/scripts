@@ -22,7 +22,7 @@
 #
 # After the script exits the instance will be shut down. Take a snapshot from
 # the Vultr portal or with:
-#   vultr snapshot create -i <id> -d "bench-runner $(date +%Y-%m-%d)"
+#   vultr snapshot create -i <instance-id> -d "bench-runner $(date +%Y-%m-%d)"
 # Then update the snapshot ID in orchestrate_vultr.py and create_instance.sh.
 
 set -euo pipefail
@@ -350,13 +350,15 @@ echo "Credentials set:"
 grep -E "OPENROUTER_API_KEY|PINCHBENCH_TOKEN|VULTR_API_KEY|PINCHBENCH_OFFICIAL_KEY|SLACK_WEBHOOK_URL|AXIOM_TOKEN|AXIOM_ORG_ID" /etc/environment \
     | sed 's/=.*/=<set>/'
 
+INSTANCE_ID=$(curl -s http://169.254.169.254/v1/instanceid)
+
 echo ""
 echo "=== Bootstrap complete at $(date -u) ==="
 echo ""
 echo "Next steps:"
 echo "  1. Instance is shutting down now"
 echo "  2. Take snapshot:"
-echo "       vultr snapshot create -i <id> -d \"bench-runner $(date +%Y-%m-%d)\""
+echo "       vultr snapshot create -i $INSTANCE_ID -d \"bench-runner $(date +%Y-%m-%d)\""
 echo "  3. Record this runner hash in docs/snapshot-versions.md:"
 echo "       $RUNNER_BUNDLE_HASH"
 echo "     (full per-file hashes are in $RUNNER_HASH_RECORD)"
@@ -370,7 +372,7 @@ echo ""
 echo "Bootstrap complete. Do NOT shut down the instance before snapshotting."
 echo "Take the snapshot from a RUNNING instance so it boots correctly:"
 echo ""
-echo "  vultr snapshot create -i <id> -d \"bench-runner $(date +%Y-%m-%d)\""
+echo "  vultr snapshot create -i $INSTANCE_ID -d \"bench-runner $(date +%Y-%m-%d)\""
 echo ""
 echo "Then delete this instance:"
-echo "  vultr instance delete <id>"
+echo "  vultr instance delete $INSTANCE_ID"
