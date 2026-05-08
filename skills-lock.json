@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "axiom-sre": {
+      "source": "axiomhq/skills",
+      "sourceType": "github",
+      "skillPath": "skills/sre/SKILL.md",
+      "computedHash": "c68aea9b6c0ca3ccc53060dde50af088fe756148e4bd1c98ccb7039b01124afc"
+    },
+    "building-dashboards": {
+      "source": "axiomhq/skills",
+      "sourceType": "github",
+      "skillPath": "skills/building-dashboards/SKILL.md",
+      "computedHash": "b261d40b92fad95950857cd302e57e8477d64b0cc3e23d98877e5c30f857bc70"
+    },
+    "query-metrics": {
+      "source": "axiomhq/skills",
+      "sourceType": "github",
+      "skillPath": "skills/query-metrics/SKILL.md",
+      "computedHash": "49868aa447c3196fd85ae3ba1462429a3fea8b2106a49d4f46d0f8925f1b8eb9"
+    }
+  }
+}
