@@ -41,7 +41,7 @@ models:
   - openrouter/z-ai/glm-5.1
   - openrouter/z-ai/glm-5-turbo
   - openrouter/z-ai/glm-5v-turbo
-  # Qwen
+  # Qwen (Juncheng-tech official submission)
   - openrouter/qwen/qwen3.6-plus
   # ByteDance
   - openrouter/bytedance-seed/seed-2.0-lite
