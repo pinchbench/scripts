@@ -168,6 +168,7 @@ def write_model_file(
     official_key: str | None = None,
     axiom_token: str | None = None,
     no_fail_fast: bool = False,
+    thinking: str | None = None,
 ) -> None:
     """
     SSH into the instance and write /root/benchmark_models.txt.
@@ -176,6 +177,7 @@ def write_model_file(
     - /root/benchmark_official_key.txt when official_key is provided
     - /root/benchmark_axiom_token.txt when axiom_token is provided
     - /root/benchmark_no_fail_fast.txt when no_fail_fast is True
+    - /root/benchmark_thinking.txt when thinking is provided
 
     This is a brief connection — we write files and disconnect.
     The bench-runner.service is already running and waiting for these files.
@@ -232,6 +234,18 @@ def write_model_file(
             if exit_status4 != 0:
                 err4 = stderr4.read().decode().strip()
                 raise RuntimeError(f"Failed to write no-fail-fast file on {ip}: {err4}")
+
+        if thinking:
+            escaped_thinking = thinking.replace("'", "'\\''")
+            thinking_cmd = (
+                f"printf '%s' '{escaped_thinking}' > /root/benchmark_thinking.txt.tmp && "
+                f"mv /root/benchmark_thinking.txt.tmp /root/benchmark_thinking.txt"
+            )
+            _, stdout5, stderr5 = client.exec_command(thinking_cmd)
+            exit_status5 = stdout5.channel.recv_exit_status()
+            if exit_status5 != 0:
+                err5 = stderr5.read().decode().strip()
+                raise RuntimeError(f"Failed to write thinking file on {ip}: {err5}")
     finally:
         client.close()
 
@@ -246,6 +260,7 @@ def launch_instance(
     official_key: str | None = None,
     axiom_token: str | None = None,
     no_fail_fast: bool = False,
+    thinking: str | None = None,
 ) -> tuple[str, str, str]:
     """
     Full lifecycle for one instance: create → wait for IP → wait for SSH → write model file.
@@ -262,7 +277,7 @@ def launch_instance(
     wait_for_ssh(ip, timeout=ssh_timeout)
     log(f"  [{label}] SSH ready — writing model assignment...")
 
-    write_model_file(ip, models, key_path, official_key=official_key, axiom_token=axiom_token, no_fail_fast=no_fail_fast)
+    write_model_file(ip, models, key_path, official_key=official_key, axiom_token=axiom_token, no_fail_fast=no_fail_fast, thinking=thinking)
     log(f"  [{label}] ✓ Models written. Instance is running headlessly.")
 
     return label, instance_id, ip
@@ -385,6 +400,12 @@ Examples:
         action="store_true",
         help="Disable fail-fast behavior (continue running all models even if sanity check fails)",
     )
+    parser.add_argument(
+        "--thinking",
+        type=str,
+        default=None,
+        help="Thinking level for reasoning depth (off, minimal, low, medium, high, xhigh, adaptive)",
+    )
 
     args = parser.parse_args()
 
@@ -423,6 +444,8 @@ Examples:
     log(f"Instances: {args.count} ({len(non_empty)} with models assigned)")
     log(f"Official:  {'yes' if args.official_key else 'no'}")
     log(f"Fail-fast: {'disabled' if args.no_fail_fast else 'enabled'}")
+    if args.thinking:
+        log(f"Thinking:  {args.thinking}")
     log("Note: laptop must stay online ~5m while instances boot")
     log(f"{'=' * 60}\n")
 
@@ -442,6 +465,7 @@ Examples:
                 args.official_key,
                 args.axiom_token,
                 args.no_fail_fast,
+                args.thinking,
             ): (
                 i,
                 bucket,
