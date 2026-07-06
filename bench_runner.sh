@@ -170,6 +170,17 @@ else
     echo "Fail-fast enabled (default)"
 fi
 
+# ── Read optional thinking level ──
+THINKING_FILE="/root/benchmark_thinking.txt"
+THINKING_ARG=()
+if [ -s "$THINKING_FILE" ]; then
+    THINKING_LEVEL=$(cat "$THINKING_FILE")
+    THINKING_ARG=(--thinking "$THINKING_LEVEL")
+    echo "Thinking level set to '$THINKING_LEVEL' from $THINKING_FILE"
+else
+    echo "Thinking level: default (no override)"
+fi
+
 # Export Vultr instance metadata for Axiom events
 export VULTR_INSTANCE_ID="$INSTANCE_ID"
 export VULTR_INSTANCE_IP="$INSTANCE_IP"
@@ -236,7 +247,7 @@ for i in "${!MODELS[@]}"; do
     echo "Started at: $(date -u)"
 
     MODEL_TMPFILE=$(mktemp)
-    uv run benchmark.py --model "$model" "${OFFICIAL_KEY_ARG[@]}" 2>&1 | tee "$MODEL_TMPFILE"
+    uv run benchmark.py --model "$model" "${OFFICIAL_KEY_ARG[@]}" "${THINKING_ARG[@]}" 2>&1 | tee "$MODEL_TMPFILE"
     MODEL_EXIT=${PIPESTATUS[0]}
     MODEL_OUTPUT=$(cat "$MODEL_TMPFILE")
     rm -f "$MODEL_TMPFILE"
