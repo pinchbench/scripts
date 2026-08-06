@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run a release-pinned official PinchBench benchmark from a manually managed VM.
 #
-# Prerequisites on PATH: git, curl, jq, python3, uv, openclaw, fws, and gws.
+# Prerequisites on PATH: git, jq, python3, uv, openclaw, fws, and gws.
 # Required environment: OPENROUTER_API_KEY and, for an official run,
 # PINCHBENCH_OFFICIAL_KEY.
 #
@@ -129,11 +129,9 @@ done
 case "$MODEL_ARGUMENT" in
   openrouter/*/*)
     MODEL="$MODEL_ARGUMENT"
-    BARE_MODEL="${MODEL_ARGUMENT#openrouter/}"
     ;;
   */*)
     MODEL="openrouter/$MODEL_ARGUMENT"
-    BARE_MODEL="$MODEL_ARGUMENT"
     ;;
   *)
     fail "Model must be provider/model or openrouter/provider/model."
@@ -145,7 +143,7 @@ if [[ "$DRY_RUN" -eq 0 ]]; then
   require_env "PINCHBENCH_OFFICIAL_KEY"
 fi
 
-for command_name in git curl jq python3 uv openclaw fws gws; do
+for command_name in git jq python3 uv openclaw fws gws; do
   require_command "$command_name"
 done
 
@@ -159,26 +157,6 @@ fi
 
 if ! has_openrouter_configuration; then
   fail "OpenClaw has no OpenRouter provider configuration. Run 'openclaw configure' or configure the OpenRouter plugin/auth profile."
-fi
-
-printf 'Checking OpenRouter availability for %s...\n' "$BARE_MODEL"
-if model_response="$(curl --fail --silent --show-error \
-  --header "Authorization: Bearer $OPENROUTER_API_KEY" \
-  "https://openrouter.ai/api/v1/models/${BARE_MODEL//\//%2F}")"; then
-  resolved_model="$(jq -r '.data.id // .id // empty' <<<"$model_response")"
-  [[ "$resolved_model" == "$BARE_MODEL" ]] \
-    || fail "OpenRouter returned an unexpected model identifier: ${resolved_model:-none}"
-else
-  # OpenRouter model detail lookups can return 404 for IDs present in its catalog.
-  printf '%s\n' 'Model detail endpoint was unavailable; checking the OpenRouter catalog...'
-  model_catalog="$(curl --fail --silent --show-error \
-    --header "Authorization: Bearer $OPENROUTER_API_KEY" \
-    'https://openrouter.ai/api/v1/models')" \
-    || fail "OpenRouter could not retrieve its model catalog. Verify the API key and network access."
-
-  jq -e --arg model "$BARE_MODEL" \
-    'any(.data[]?; .id == $model)' <<<"$model_catalog" >/dev/null \
-    || fail "OpenRouter catalog does not contain $BARE_MODEL. Verify the model ID and API key."
 fi
 
 printf 'Synchronizing benchmark dependencies...\n'
