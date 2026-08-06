@@ -160,7 +160,7 @@ if ! has_openrouter_configuration; then
 fi
 
 printf 'Synchronizing benchmark dependencies...\n'
-(cd "$SKILL_DIR" && uv sync --frozen)
+(cd "$SKILL_DIR" && uv sync)
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
   printf 'Starting local core-suite dry run for %s...\n' "$MODEL"
