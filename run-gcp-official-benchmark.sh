@@ -58,6 +58,25 @@ require_env() {
   [[ -n "${!1:-}" ]] || fail "Required environment variable is not set: $1"
 }
 
+has_openrouter_configuration() {
+  local legacy_models="$HOME/.openclaw/agents/main/agent/models.json"
+  local global_config="$HOME/.openclaw/openclaw.json"
+
+  if [[ -f "$legacy_models" ]] && jq -e '
+    .models.providers.openrouter? != null or .providers.openrouter? != null
+  ' "$legacy_models" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  [[ -f "$global_config" ]] || return 1
+  jq -e '
+    .plugins.entries.openrouter.enabled == true or
+    any((.agents.defaults.models // {}) | keys[]?; startswith("openrouter/")) or
+    (.agents.defaults.model.primary? // "" | startswith("openrouter/")) or
+    ([.auth.profiles // {} | .[]? | select(.provider == "openrouter")] | length > 0)
+  ' "$global_config" >/dev/null 2>&1
+}
+
 prepare_skill_checkout() {
   if [[ ! -e "$SKILL_DIR" ]]; then
     printf 'Cloning PinchBench skill %s into %s...\n' "$BENCHMARK_VERSION" "$SKILL_DIR"
@@ -138,13 +157,8 @@ if ! openclaw --version >/dev/null 2>&1; then
   fail "OpenClaw is installed but not runnable. Fix its installation before benchmarking."
 fi
 
-openclaw_config="$HOME/.openclaw/agents/main/agent/models.json"
-if [[ ! -f "$openclaw_config" ]]; then
-  fail "OpenClaw model configuration not found: $openclaw_config"
-fi
-
-if ! grep -q 'openrouter' "$openclaw_config"; then
-  fail "OpenClaw model configuration does not reference an OpenRouter provider: $openclaw_config"
+if ! has_openrouter_configuration; then
+  fail "OpenClaw has no OpenRouter provider configuration. Run 'openclaw configure' or configure the OpenRouter plugin/auth profile."
 fi
 
 printf 'Checking OpenRouter availability for %s...\n' "$BARE_MODEL"
