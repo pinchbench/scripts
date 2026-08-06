@@ -162,13 +162,24 @@ if ! has_openrouter_configuration; then
 fi
 
 printf 'Checking OpenRouter availability for %s...\n' "$BARE_MODEL"
-model_response="$(curl --fail --silent --show-error \
+if model_response="$(curl --fail --silent --show-error \
   --header "Authorization: Bearer $OPENROUTER_API_KEY" \
-  "https://openrouter.ai/api/v1/models/${BARE_MODEL//\//%2F}")" \
-  || fail "OpenRouter could not resolve $BARE_MODEL. Verify the model ID and API key."
+  "https://openrouter.ai/api/v1/models/${BARE_MODEL//\//%2F}")"; then
+  resolved_model="$(jq -r '.data.id // .id // empty' <<<"$model_response")"
+  [[ "$resolved_model" == "$BARE_MODEL" ]] \
+    || fail "OpenRouter returned an unexpected model identifier: ${resolved_model:-none}"
+else
+  # OpenRouter model detail lookups can return 404 for IDs present in its catalog.
+  printf '%s\n' 'Model detail endpoint was unavailable; checking the OpenRouter catalog...'
+  model_catalog="$(curl --fail --silent --show-error \
+    --header "Authorization: Bearer $OPENROUTER_API_KEY" \
+    'https://openrouter.ai/api/v1/models')" \
+    || fail "OpenRouter could not retrieve its model catalog. Verify the API key and network access."
 
-resolved_model="$(jq -r '.data.id // .id // empty' <<<"$model_response")"
-[[ "$resolved_model" == "$BARE_MODEL" ]] || fail "OpenRouter returned an unexpected model identifier: ${resolved_model:-none}"
+  jq -e --arg model "$BARE_MODEL" \
+    'any(.data[]?; .id == $model)' <<<"$model_catalog" >/dev/null \
+    || fail "OpenRouter catalog does not contain $BARE_MODEL. Verify the model ID and API key."
+fi
 
 printf 'Synchronizing benchmark dependencies...\n'
 (cd "$SKILL_DIR" && uv sync --frozen)
